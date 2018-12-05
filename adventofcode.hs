@@ -20,6 +20,8 @@ dupeFrequency possible accum (x:xs) = let newAccum = accum + x
 numberOneB :: IO Int
 numberOneB = dupeFrequency S.empty 0 . cycle . cleanInts <$> readFile "/Users/nwest/1"
 
+-----------------------------------------------
+
 frequency :: Ord a => [a] -> [Int]
 frequency = map length . group . sort
 
@@ -30,7 +32,7 @@ normalize :: [Int] -> [Int]
 normalize = map (\x -> if x == 0 then 0 else 1)
 
 hamming :: String -> String -> Int
-hamming s1 s2 = sum . normalize $ zipWith (-) (map ord s1) (map ord s2)
+hamming s1 = let f = map ord in sum . normalize . zipWith (-) (f s1) . f
 
 combinations :: [a] -> [(a, a)]
 combinations [] = []
@@ -38,10 +40,15 @@ combinations (x:xs) = pairAll x xs ++ combinations xs
                         where pairAll _ [] = []
                               pairAll a (y:ys) = (a, y) : pairAll a ys
 
+combinations' :: [a] -> [(a, a)]
+combinations' xs = concat [ zip (repeat b) . drop a $ xs | (a, b) <- zip [1..] xs ]
+
 third :: (a, b, c) -> c
 third (_, _, c) = c
 
 numberTwoB :: IO String
-numberTwoB = commonLetters . head . sortOn third . map distance . combinations . lines <$> readFile "/Users/nwest/2"
-               where distance set = (fst set, snd set, uncurry hamming set)
+numberTwoB = commonLetters . head . sortOn third . map distance . combinations' . lines <$> readFile "/Users/nwest/2"
+               where distance set@(l, r) = (l, r, uncurry hamming set)
                      commonLetters (s1, s2, _) = concat $ zipWith (\a b -> if a == b then [a] else "") s1 s2
+
+-----------------------------------------------
