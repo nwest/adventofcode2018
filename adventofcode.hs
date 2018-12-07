@@ -3,6 +3,7 @@ import qualified Data.Set as S hiding (Set)
 import Data.Set (Set)
 import Data.List (sort, sortOn, group, nub)
 import Data.Char (ord)
+--import Text.Regex.Posix
 
 cleanInts :: String -> [Int]
 cleanInts = map read . lines . filter (/= '+')
@@ -50,5 +51,35 @@ numberTwoB :: IO String
 numberTwoB = commonLetters . head . sortOn third . map distance . combinations' . lines <$> readFile "/Users/nwest/2"
                where distance set@(l, r) = (l, r, uncurry hamming set)
                      commonLetters (s1, s2, _) = concat $ zipWith (\a b -> if a == b then [a] else "") s1 s2
+
+-----------------------------------------------
+
+data Plan = Plan { xcoord   :: Int
+                 , ycoord   :: Int
+                 , width    :: Int
+                 , height   :: Int } deriving (Eq, Show)
+
+coordinates :: Plan -> [(Int, Int)]
+coordinates plan = let top = ycoord plan + height plan
+                       right = xcoord plan + width plan
+                       x = xcoord plan
+                       y = ycoord plan
+                      in [(x, y), (x, top), (right, y), (right, top)]
+
+hitTest :: Plan -> (Int, Int) -> Bool
+hitTest plan coords = let testLeft    = fst coords > xcoord plan
+                          testRight   = fst coords < xcoord plan + width plan
+                          testTop     = snd coords < ycoord plan + height plan
+                          testBottom  = snd coords > ycoord plan
+                        in and [testLeft, testRight, testTop, testBottom]
+
+overlaps :: Plan -> Plan -> Bool
+overlaps p1 p2 = let coords = coordinates p2 in or $ map (hitTest p1) coords
+
+parsePlans :: [String] -> [Plan]
+parsePlans _ = Plan 0 0 10 10 : Plan 2 4 10 12 : []
+
+numberThree :: IO [Plan]
+numberThree = parsePlans . lines <$> readFile "/Users/nwest/3"
 
 -----------------------------------------------
