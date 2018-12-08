@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
+{-# LANGUAGE ViewPatterns #-}
 import qualified Data.Set as S hiding (Set)
 import Data.Set (Set)
 import Data.List (sort, sortOn, group, nub)
@@ -54,32 +55,42 @@ numberTwoB = commonLetters . head . sortOn third . map distance . combinations' 
 
 -----------------------------------------------
 
-data Plan = Plan { xcoord   :: Int
-                 , ycoord   :: Int
-                 , width    :: Int
-                 , height   :: Int } deriving (Eq, Show)
+type XCoord = Int
+type YCoord = Int
+type Width = Int
+type Height = Int
+type Coordinate = (XCoord, YCoord)
+data Plan = Plan XCoord YCoord Width Height deriving (Eq, Show)
 
-coordinates :: Plan -> [(Int, Int)]
-coordinates plan = let top = ycoord plan + height plan
-                       right = xcoord plan + width plan
-                       x = xcoord plan
-                       y = ycoord plan
-                      in [(x, y), (x, top), (right, y), (right, top)]
+coordinates :: Plan -> [Coordinate]
+coordinates x y w h = let top = y + h
+                          right = x + w
+                        in [(x, y), (x, top), (right, y), (right, top)]
 
-hitTest :: Plan -> (Int, Int) -> Bool
-hitTest plan coords = let testLeft    = fst coords > xcoord plan
-                          testRight   = fst coords < xcoord plan + width plan
-                          testTop     = snd coords < ycoord plan + height plan
-                          testBottom  = snd coords > ycoord plan
-                        in and [testLeft, testRight, testTop, testBottom]
+hitTest :: Plan -> Coordinate -> Bool
+hitTest x y w h (xb, yb) = let testLeft   = xb > x
+                               testRight  = xb < x + w
+                               testTop    = yb < y + h
+                               testBottom = yb > y
+                           in and [testLeft, testRight, testTop, testBottom]
 
 overlaps :: Plan -> Plan -> Bool
-overlaps p1 p2 = let coords = coordinates p2 in or $ map (hitTest p1) coords
+overlaps p1 p2 = let coords = coordinates p2 in or . map (hitTest p1) $ coords
 
-parsePlans :: [String] -> [Plan]
-parsePlans _ = Plan 0 0 10 10 : Plan 2 4 10 12 : []
+splitOn :: Char -> String -> [String]
+splitOn c s | not (c `elem` s) = [s]
+            | otherwise = let f g = g (/= c) s
+                          in [f takeWhile, tail . f $ dropWhile]
+
+parsePlan :: String -> Plan
+parsePlan s = let [init -> a, b] = drop 2 . words $ s 
+                  [xc, yc] = f ',' a
+                  [w, h] = f 'x' b
+              in Plan xc yc w h
+  where
+    f x = map read . splitOn x
 
 numberThree :: IO [Plan]
-numberThree = parsePlans . lines <$> readFile "/Users/nwest/3"
+numberThree = map parsePlan . lines <$> readFile "/Users/nwest/3"
 
 -----------------------------------------------
