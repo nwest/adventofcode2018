@@ -59,23 +59,13 @@ type XCoord = Int
 type YCoord = Int
 type Width = Int
 type Height = Int
-type Coordinate = (XCoord, YCoord)
+type Coordinate = (Int, Int)
 data Plan = Plan XCoord YCoord Width Height deriving (Eq, Show)
 
-coordinates :: Plan -> [Coordinate]
-coordinates x y w h = let top = y + h
-                          right = x + w
-                        in [(x, y), (x, top), (right, y), (right, top)]
-
-hitTest :: Plan -> Coordinate -> Bool
-hitTest x y w h (xb, yb) = let testLeft   = xb > x
-                               testRight  = xb < x + w
-                               testTop    = yb < y + h
-                               testBottom = yb > y
-                           in and [testLeft, testRight, testTop, testBottom]
-
-overlaps :: Plan -> Plan -> Bool
-overlaps p1 p2 = let coords = coordinates p2 in or . map (hitTest p1) $ coords
+coordinates :: Plan -> [(Int, Int)]
+coordinates (Plan x y w h) = let top = y + h
+                                 right = x + w
+                             in [(x, y), (x, top), (right, y), (right, top)]
 
 splitOn :: Char -> String -> [String]
 splitOn c s | not (c `elem` s) = [s]
