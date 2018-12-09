@@ -58,13 +58,13 @@ data Coordinate = Coordinate XCoord YCoord deriving (Eq, Show, Ord)
 data Plan = Plan Id XCoord YCoord Width Height deriving (Eq, Show)
 
 splitOn :: Char -> String -> [String]
-splitOn c s | not (c `elem` s) = [s]
+splitOn c s | c `notElem` s = [s]
             | otherwise = let f g = g (/= c) s
                           in [f takeWhile, tail . f $ dropWhile]
 
 -- #1319 @ 627,639: 23x11
 parsePlan :: String -> Plan
-parsePlan s = let [(read . tail) -> num, _, init -> cs, wh] = words $ s
+parsePlan s = let [(read . tail) -> num, _, init -> cs, wh] = words s
                   [x, y] = f ',' cs
                   [w, h] = f 'x' wh
               in Plan num x y w h
@@ -78,14 +78,14 @@ numberThree :: IO Int
 numberThree = length . filter ((/=) 1 . length) . group . sort . concatMap (coordinateMap . parsePlan)  . lines <$> readFile "/Users/nwest/3"
 
 checkOverlaps :: Ord a => [Set a] -> [Bool]
-checkOverlaps set = map (\d -> overlapsWith d (filter (/= d) set)) $ set
+checkOverlaps set = map (\d -> overlapsWith d (filter (/= d) set)) set
                     where
-                      overlapsWith a = or . map (\bs -> not (S.disjoint a bs))
+                      overlapsWith a = any (not . S.disjoint a)
 
 numberThreeB :: IO Plan
 numberThreeB = let plans = map parsePlan . lines <$> readFile "/Users/nwest/3"
                    overlaps = checkOverlaps . map (S.fromList . coordinateMap) <$> plans
-                   output = fst . head . filter (\(_, o) -> o == False) <$> (zip <$> plans <*> overlaps)
+                   output = fst . head . filter (\(_, o) -> not o) <$> (zip <$> plans <*> overlaps)
                in output
 
 -----------------------------------------------
