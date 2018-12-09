@@ -9,7 +9,7 @@ cleanInts :: String -> [Int]
 cleanInts = map read . lines . filter (/= '+')
 
 numberOne :: IO Int
-numberOne = sum . cleanInts <$> readFile "/Users/nwest/1"
+numberOne = sum . cleanInts <$> readFile "/Users/nwest/AoC/1"
 
 dupeFrequency :: Set Int -> Int -> [Int] -> Int
 dupeFrequency _ _ [] = 0
@@ -19,7 +19,7 @@ dupeFrequency possible accum (x:xs) = let newAccum = accum + x
                                         else dupeFrequency (S.insert newAccum possible) newAccum xs
 
 numberOneB :: IO Int
-numberOneB = dupeFrequency S.empty 0 . cycle . cleanInts <$> readFile "/Users/nwest/1"
+numberOneB = dupeFrequency S.empty 0 . cycle . cleanInts <$> readFile "/Users/nwest/AoC/1"
 
 -----------------------------------------------
 
@@ -27,7 +27,7 @@ frequency :: Ord a => [a] -> [Int]
 frequency = map length . group . sort
 
 numberTwo :: IO Int
-numberTwo =  product . frequency . filter (/= 1) . concatMap (nub . frequency) . lines <$> readFile "/Users/nwest/2"
+numberTwo =  product . frequency . filter (/= 1) . concatMap (nub . frequency) . lines <$> readFile "/Users/nwest/AoC/2"
 
 normalize :: [Int] -> [Int]
 normalize = map (\x -> if x == 0 then 0 else 1)
@@ -42,7 +42,7 @@ third :: (a, b, c) -> c
 third (_, _, c) = c
 
 numberTwoB :: IO String
-numberTwoB = commonLetters . head . sortOn third . map distance . combinations . lines <$> readFile "/Users/nwest/2"
+numberTwoB = commonLetters . head . sortOn third . map distance . combinations . lines <$> readFile "/Users/nwest/AoC/2"
                where distance set@(l, r) = (l, r, uncurry hamming set)
                      commonLetters (s1, s2, _) = concat $ zipWith (\a b -> if a == b then [a] else "") s1 s2
 
@@ -75,7 +75,7 @@ coordinateMap :: Plan -> [Coordinate]
 coordinateMap (Plan _ x y w h) = [ Coordinate xc yc | xc <- [x..(x + w - 1)], yc <- [y..(y + h - 1)] ]
 
 numberThree :: IO Int
-numberThree = length . filter ((/=) 1 . length) . group . sort . concatMap (coordinateMap . parsePlan)  . lines <$> readFile "/Users/nwest/3"
+numberThree = length . filter ((/=) 1 . length) . group . sort . concatMap (coordinateMap . parsePlan)  . lines <$> readFile "/Users/nwest/AoC/3"
 
 checkOverlaps :: Ord a => [Set a] -> [Bool]
 checkOverlaps set = map (\d -> overlapsWith d (filter (/= d) set)) set
@@ -83,7 +83,7 @@ checkOverlaps set = map (\d -> overlapsWith d (filter (/= d) set)) set
                       overlapsWith a = any (not . S.disjoint a)
 
 numberThreeB :: IO Plan
-numberThreeB = let plans = map parsePlan . lines <$> readFile "/Users/nwest/3"
+numberThreeB = let plans = map parsePlan . lines <$> readFile "/Users/nwest/AoC/3"
                    overlaps = checkOverlaps . map (S.fromList . coordinateMap) <$> plans
                in fst . head . filter (\(_, o) -> not o) <$> (zip <$> plans <*> overlaps)
 
