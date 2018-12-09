@@ -47,25 +47,31 @@ numberTwoB = commonLetters . head . sortOn third . map distance . combinations .
                      commonLetters (s1, s2, _) = concat $ zipWith (\a b -> if a == b then [a] else "") s1 s2
 
 -----------------------------------------------
+type Id = Int
+type XCoord = Int
+type YCoord = Int
+type Width = Int
+type Height = Int
 
-data Coordinate = Coordinate Int Int deriving (Eq, Show, Ord)
-data Plan = Plan Int Int Int Int deriving (Eq, Show)
+data Coordinate = Coordinate XCoord YCoord deriving (Eq, Show, Ord)
+data Plan = Plan Id XCoord YCoord Width Height deriving (Eq, Show)
 
 splitOn :: Char -> String -> [String]
 splitOn c s | not (c `elem` s) = [s]
             | otherwise = let f g = g (/= c) s
                           in [f takeWhile, tail . f $ dropWhile]
 
+-- #1319 @ 627,639: 23x11
 parsePlan :: String -> Plan
-parsePlan s = let [init -> a, b] = drop 2 . words $ s 
-                  [x, y] = f ',' a
-                  [w, h] = f 'x' b
-              in Plan x y w h
+parsePlan s = let [(read . tail) -> num, _, init -> cs, wh] = words $ s
+                  [x, y] = f ',' cs
+                  [w, h] = f 'x' wh
+              in Plan num x y w h
   where
     f x = map read . splitOn x
 
 coordinateMap :: Plan -> [Coordinate]
-coordinateMap (Plan x y w h) = [ Coordinate xc yc | xc <- [x..(x + w - 1)], yc <- [y..(y + h - 1)]]
+coordinateMap (Plan _ x y w h) = [ Coordinate xc yc | xc <- [x..(x + w - 1)], yc <- [y..(y + h - 1)] ]
 
 numberThree :: IO Int
 numberThree = length . filter ((/=) 1 . length) . group . sort . concatMap (coordinateMap . parsePlan)  . lines <$> readFile "/Users/nwest/3"
