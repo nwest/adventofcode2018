@@ -85,8 +85,7 @@ checkOverlaps set = map (\d -> overlapsWith d (filter (/= d) set)) set
 numberThreeB :: IO Plan
 numberThreeB = let plans = map parsePlan . lines <$> readFile "/Users/nwest/3"
                    overlaps = checkOverlaps . map (S.fromList . coordinateMap) <$> plans
-                   output = fst . head . filter (\(_, o) -> not o) <$> (zip <$> plans <*> overlaps)
-               in output
+               in fst . head . filter (\(_, o) -> not o) <$> (zip <$> plans <*> overlaps)
 
 -----------------------------------------------
 
