@@ -4,7 +4,6 @@ import qualified Data.Set as S hiding (Set)
 import Data.Set (Set)
 import Data.List (sort, sortOn, group, nub)
 import Data.Char (ord)
---import Text.Regex.Posix
 
 cleanInts :: String -> [Int]
 cleanInts = map read . lines . filter (/= '+')
@@ -49,11 +48,8 @@ numberTwoB = commonLetters . head . sortOn third . map distance . combinations .
 
 -----------------------------------------------
 
-type XCoord = Int
-type YCoord = Int
-type Width = Int
-type Height = Int
-data Plan = Plan XCoord YCoord Width Height deriving (Eq, Show)
+data Coordinate = Coordinate Int Int deriving (Eq, Show, Ord)
+data Plan = Plan Int Int Int Int deriving (Eq, Show)
 
 splitOn :: Char -> String -> [String]
 splitOn c s | not (c `elem` s) = [s]
@@ -68,16 +64,11 @@ parsePlan s = let [init -> a, b] = drop 2 . words $ s
   where
     f x = map read . splitOn x
 
-overlappingArea :: Plan -> Plan -> Int
-overlappingArea (Plan x1 y1 w1 h1) (Plan x2 y2 w2 h2) = let left = max x1 x2
-                                                            right = min (x1 + w1) (x2 + w2)
-                                                            bottom = max y1 y2
-                                                            top = min (y1 + h1) (y2 + h2)
-                                                            iWidth = max 0 (right - left)
-                                                            iHeight = max 0 (top - bottom)
-                                                        in  iWidth * iHeight
+coordinateMap :: Plan -> [Coordinate]
+coordinateMap (Plan x y w h) = [ Coordinate xc yc | xc <- [x..(x + w - 1)], yc <- [y..(y + h - 1)]]
 
 numberThree :: IO Int
-numberThree = sum . map (uncurry overlappingArea) . combinations . map parsePlan . lines <$> readFile "/Users/nwest/3"
+numberThree = length . filter ((/=) 1 . length) . group . sort . concatMap (coordinateMap . parsePlan)  . lines <$> readFile "/Users/nwest/3"
 
 -----------------------------------------------
+
