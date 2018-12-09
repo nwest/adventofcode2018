@@ -47,6 +47,7 @@ numberTwoB = commonLetters . head . sortOn third . map distance . combinations .
                      commonLetters (s1, s2, _) = concat $ zipWith (\a b -> if a == b then [a] else "") s1 s2
 
 -----------------------------------------------
+
 type Id = Int
 type XCoord = Int
 type YCoord = Int
@@ -75,6 +76,17 @@ coordinateMap (Plan _ x y w h) = [ Coordinate xc yc | xc <- [x..(x + w - 1)], yc
 
 numberThree :: IO Int
 numberThree = length . filter ((/=) 1 . length) . group . sort . concatMap (coordinateMap . parsePlan)  . lines <$> readFile "/Users/nwest/3"
+
+checkOverlaps :: Ord a => [Set a] -> [Bool]
+checkOverlaps set = map (\d -> overlapsWith d (filter (/= d) set)) $ set
+                    where
+                      overlapsWith a = or . map (\bs -> not (S.disjoint a bs))
+
+numberThreeB :: IO Plan
+numberThreeB = let plans = map parsePlan . lines <$> readFile "/Users/nwest/3"
+                   overlaps = checkOverlaps . map (S.fromList . coordinateMap) <$> plans
+                   output = fst . head . filter (\(_, o) -> o == False) <$> (zip <$> plans <*> overlaps)
+               in output
 
 -----------------------------------------------
 
