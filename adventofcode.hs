@@ -109,7 +109,13 @@ react s = let new = reverse $ foldl (\st c ->
           in if new == s then s else react new
 
 numberFive :: IO Int
-numberFive = head . map (length . react) . lines <$> readFile "/Users/nwest/AoC/5"
+numberFive = length . react . head . lines <$> readFile "/Users/nwest/AoC/5"
+
+removePolymers :: String -> [String]
+removePolymers s = map (\c -> filter (\ch -> if ch == c || ch == toUpper c then False else True) s) ['a'..'z']
+
+numberFiveB :: IO Int
+numberFiveB = head . sort . map (length . react) . removePolymers . head . lines <$> readFile "/Users/nwest/AoC/5"
 
 -----------------------------------------------
 
