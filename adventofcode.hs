@@ -3,8 +3,7 @@
 import qualified Data.Set as S hiding (Set)
 import Data.Set (Set)
 import Data.List (sort, sortOn, group, nub)
-import Data.Char (ord)
-import Data.Tuple
+import Data.Char (ord, toLower)
 
 cleanInts :: String -> [Int]
 cleanInts = map read . lines . filter (/= '+')
@@ -97,33 +96,18 @@ numberFour = lines <$> readFile "/Users/nwest/AoC/4"
 
 -----------------------------------------------
 
-polymerCombos :: Set (Char, Char)
-polymerCombos = let xs = zip ['a'..'z'] ['A'..'Z']
-                in S.fromList (xs ++ map swap xs)
-
-byTwos :: Ord a => [a] -> Set (a, a)
-byTwos s = S.fromList (zip s . tail $ s)
-
-hasReactions :: String -> Bool
-hasReactions s = let split = byTwos s
-                 in not (S.disjoint polymerCombos split)
+shouldReact :: Char -> Char -> Bool
+shouldReact c1 c2 = toLower c1 == toLower c2
 
 react :: String -> String
-react [] = []
-react [a] = [a]
-react [a, b] = if S.member (a, b) polymerCombos then "" else [a, b]
-react (a:b:c:xs) | S.member (a, b) polymerCombos = react (c:xs)
-                 | S.member (b, c) polymerCombos = react (a:xs)
-                 | otherwise = a:b:c:react xs
-
-tryReact :: String -> String
-tryReact s | hasReactions s = f
-           | hasReactions (tail s) = f
-           | otherwise = s
-           where f = tryReact (react s)
+react s = let new = reverse $ foldl (\st c ->
+                                      if null st then c:st
+                                      else if shouldReact c (head st) then tail st
+                                      else c:st) "" s
+          in if new == s then s else react new
 
 numberFive :: IO Int
-numberFive = length . tryReact . init <$> readFile "/Users/nwest/AoC/5"
+numberFive = length . react . init <$> readFile "/Users/nwest/AoC/5"
 
 -----------------------------------------------
 
