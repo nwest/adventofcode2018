@@ -3,7 +3,7 @@
 import qualified Data.Set as S hiding (Set)
 import Data.Set (Set)
 import Data.List (sort, sortOn, group, nub)
-import Data.Char (ord, toLower)
+import Data.Char (ord, toUpper, isUpper, isLower)
 
 cleanInts :: String -> [Int]
 cleanInts = map read . lines . filter (/= '+')
@@ -97,7 +97,9 @@ numberFour = lines <$> readFile "/Users/nwest/AoC/4"
 -----------------------------------------------
 
 shouldReact :: Char -> Char -> Bool
-shouldReact c1 c2 = toLower c1 == toLower c2
+shouldReact c1 c2 = if isUpper c1 && isLower c2 then c1 == toUpper c2
+                    else if isLower c1 && isUpper c2 then toUpper c1 == c2 
+                    else False
 
 react :: String -> String
 react s = let new = reverse $ foldl (\st c ->
@@ -107,7 +109,7 @@ react s = let new = reverse $ foldl (\st c ->
           in if new == s then s else react new
 
 numberFive :: IO Int
-numberFive = length . react . init <$> readFile "/Users/nwest/AoC/5"
+numberFive = head . map (length . react) . lines <$> readFile "/Users/nwest/AoC/5"
 
 -----------------------------------------------
 
