@@ -4,6 +4,7 @@ import qualified Data.Set as S hiding (Set)
 import Data.Set (Set)
 import Data.List (sort, sortOn, group, nub)
 import Data.Char (ord)
+import Data.Tuple
 
 cleanInts :: String -> [Int]
 cleanInts = map read . lines . filter (/= '+')
@@ -86,6 +87,43 @@ numberThreeB :: IO Plan
 numberThreeB = let plans = map parsePlan . lines <$> readFile "/Users/nwest/AoC/3"
                    overlaps = checkOverlaps . map (S.fromList . coordinateMap) <$> plans
                in fst . head . filter (\(_, o) -> not o) <$> (zip <$> plans <*> overlaps)
+
+-----------------------------------------------
+
+-- data Event = Wake | Sleep | Start DateTime
+
+numberFour :: IO [String]
+numberFour = lines <$> readFile "/Users/nwest/AoC/4"
+
+-----------------------------------------------
+
+polymerCombos :: Set (Char, Char)
+polymerCombos = let xs = zip ['a'..'z'] ['A'..'Z']
+                in S.fromList (xs ++ map swap xs)
+
+byTwos :: Ord a => [a] -> Set (a, a)
+byTwos s = S.fromList (zip s . tail $ s)
+
+hasReactions :: String -> Bool
+hasReactions s = let split = byTwos s
+                 in not (S.disjoint polymerCombos split)
+
+react :: String -> String
+react [] = []
+react [a] = [a]
+react [a, b] = if S.member (a, b) polymerCombos then "" else [a, b]
+react (a:b:c:xs) | S.member (a, b) polymerCombos = react (c:xs)
+                 | S.member (b, c) polymerCombos = react (a:xs)
+                 | otherwise = a:b:c:react xs
+
+tryReact :: String -> String
+tryReact s | hasReactions s = f
+           | hasReactions (tail s) = f
+           | otherwise = s
+           where f = tryReact (react s)
+
+numberFive :: IO Int
+numberFive = length . tryReact . init <$> readFile "/Users/nwest/AoC/5"
 
 -----------------------------------------------
 
