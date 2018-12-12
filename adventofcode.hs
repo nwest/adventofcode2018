@@ -97,9 +97,9 @@ numberFour = lines <$> readFile "/Users/nwest/AoC/4"
 -----------------------------------------------
 
 shouldReact :: Char -> Char -> Bool
-shouldReact c1 c2 = if isUpper c1 && isLower c2 then c1 == toUpper c2
-                    else if isLower c1 && isUpper c2 then toUpper c1 == c2 
-                    else False
+shouldReact c1 c2 | isUpper c1 && isLower c2 = c1 == toUpper c2
+                  | isLower c1 && isUpper c2 = toUpper c1 == c2 
+                  | otherwise =  False
 
 react :: String -> String
 react s = let new = reverse $ foldl (\st c ->
@@ -112,10 +112,10 @@ numberFive :: IO Int
 numberFive = length . react . head . lines <$> readFile "/Users/nwest/AoC/5"
 
 removePolymers :: String -> [String]
-removePolymers s = map (\c -> filter (\ch -> if ch == c || ch == toUpper c then False else True) s) ['a'..'z']
+removePolymers s = map (\c -> filter (\ch -> not (ch == c || ch == toUpper c)) s) ['a'..'z']
 
 numberFiveB :: IO Int
-numberFiveB = head . sort . map (length . react) . removePolymers . head . lines <$> readFile "/Users/nwest/AoC/5"
+numberFiveB = minimum . map (length . react) . removePolymers . head . lines <$> readFile "/Users/nwest/AoC/5"
 
 -----------------------------------------------
 
