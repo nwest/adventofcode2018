@@ -96,8 +96,8 @@ numberFour = lines <$> readFile "/Users/nwest/AoC/4"
 
 -----------------------------------------------
 
-numberFive :: IO String
-numberFive = reaction . head . lines <$> readFile "/Users/nwest/AoC/5"
+numberFive :: IO Int
+numberFive = length . reaction . head . lines <$> readFile "/Users/nwest/AoC/5"
 
 reaction :: String -> String
 reaction input = let reacted = react input
@@ -111,9 +111,11 @@ react input = foldr reactPolymers "" input
                       reactPolymers char string@(firstChar:rest) = if shouldReact char firstChar
                                                                      then rest
                                                                      else char:string
-                      shouldReact c1 c2 | isUpper c1, isLower c2 = c1 == toUpper c2
-                                        | isLower c1, isUpper c2 = toUpper c1 == c2
-                                        | otherwise = False
+
+shouldReact :: Char -> Char -> Bool
+shouldReact c1 c2 | isUpper c1, isLower c2 = c1 == toUpper c2
+                  | isLower c1, isUpper c2 = toUpper c1 == c2
+                  | otherwise = False
 
 removePolymers :: String -> [String]
 removePolymers s = map (removePolymer s) ['a'..'z']
