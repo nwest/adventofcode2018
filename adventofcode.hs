@@ -2,7 +2,7 @@
 {-# LANGUAGE ViewPatterns #-}
 import qualified Data.Set as S hiding (Set)
 import Data.Set (Set)
-import Data.List (sort, sortOn, group, nub)
+import Data.List (sort, sortOn, group, nub, minimumBy)
 import Data.Char (ord, toUpper, isUpper, isLower)
 
 cleanInts :: String -> [Int]
@@ -118,4 +118,20 @@ numberFiveB :: IO Int
 numberFiveB = minimum . map (length . react) . removePolymers . head . lines <$> readFile "/Users/nwest/AoC/5"
 
 -----------------------------------------------
+parseCoordinate :: String -> Coordinate
+parseCoordinate s = let [read -> x, read -> y] = splitOn ',' s in Coordinate x y
 
+manhattan :: Coordinate -> Coordinate -> Int
+manhattan (Coordinate x1 y1) (Coordinate x2 y2) = max x1 x2 - min x1 x2 + max y1 y2 - min y1 y2
+
+boundingPlan :: [Coordinate] -> Plan
+boundingPlan cs = let (Coordinate left _)   = minimumBy (\(Coordinate x1 _) (Coordinate x2 _) -> compare x1 x2) cs
+                      (Coordinate right _)  = minimumBy (\(Coordinate x1 _) (Coordinate x2 _) -> compare x2 x1) cs
+                      (Coordinate _ bottom) = minimumBy (\(Coordinate _ y1) (Coordinate _ y2) -> compare y1 y2) cs
+                      (Coordinate _ top)    = minimumBy (\(Coordinate _ y1) (Coordinate _ y2) -> compare y2 y1) cs
+                  in Plan 1 left bottom (right - left) (top - bottom)
+
+numberSix :: IO [Coordinate]
+numberSix = let sites = map parseCoordinate . lines <$> readFile "/Users/nwest/AoC/6"
+                --allCoordinates = coordinateMap . boundingPlan <$> sites
+            in sites
