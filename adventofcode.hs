@@ -102,11 +102,10 @@ shouldReact c1 c2 | isUpper c1, isLower c2 = c1 == toUpper c2
                   | otherwise =  False
 
 react :: String -> String
-react s = let new = foldr f "" s
-              f c s@(a:as) | null s = c:s
-                           | shouldReact c a = as
-                           | otherwise = c:s
-          in if new == s then s else react new
+react str = let new = foldr f "" str
+                f c [] = [c]
+                f c s@(a:as) = if shouldReact c a then as else c:s
+          in if new == str then str else react new
 
 numberFive :: IO Int
 numberFive = length . react . head . lines <$> readFile "/Users/nwest/AoC/5"
