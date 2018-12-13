@@ -99,19 +99,20 @@ numberFour = lines <$> readFile "/Users/nwest/AoC/4"
 shouldReact :: Char -> Char -> Bool
 shouldReact c1 c2 | isUpper c1, isLower c2 = c1 == toUpper c2
                   | isLower c1, isUpper c2 = toUpper c1 == c2 
-                  | otherwise =  False
+                  | otherwise = False
 
 react :: String -> String
-react str = let new = foldr f "" str
-                f c [] = [c]
-                f c s@(a:as) = if shouldReact c a then as else c:s
-          in if new == str then str else react new
+react st = let new = foldr f "" st
+               f c [] = [c]
+               f c s@(a:as) = if shouldReact c a then as else c:s
+           in if new == st then st else react new
 
 numberFive :: IO Int
 numberFive = length . react . head . lines <$> readFile "/Users/nwest/AoC/5"
 
 removePolymers :: String -> [String]
-removePolymers s = map (\c -> filter (\ch -> not (ch == c || ch == toUpper c)) s) ['a'..'z']
+removePolymers s = map (removePolymer s) ['a'..'z']
+                    where removePolymer st c = filter (\ch -> not (ch == c || ch == toUpper c)) st
 
 numberFiveB :: IO Int
 numberFiveB = minimum . map (length . react) . removePolymers . head . lines <$> readFile "/Users/nwest/AoC/5"
