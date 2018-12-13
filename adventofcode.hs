@@ -102,20 +102,27 @@ shouldReact c1 c2 | isUpper c1, isLower c2 = c1 == toUpper c2
                   | otherwise = False
 
 react :: String -> String
-react st = let new = foldr f "" st
-               f c [] = [c]
-               f c s@(a:as) = if shouldReact c a then as else c:s
-           in if new == st then st else react new
+react inputString = foldr reactPolymers "" inputString
+                      where reactPolymers char [] = [char]
+                            reactPolymers char string@(firstChar:rest) = if shouldReact char firstChar
+                                                                         then rest
+                                                                         else char:string
+
+reaction :: String -> String
+reaction inputString = let reactedString = react inputString
+                       in if reactedString == inputString
+                          then reactedString
+                          else react reactedString
 
 numberFive :: IO Int
-numberFive = length . react . head . lines <$> readFile "/Users/nwest/AoC/5"
+numberFive = length . reaction . head . lines <$> readFile "/Users/nwest/AoC/5"
 
 removePolymers :: String -> [String]
 removePolymers s = map (removePolymer s) ['a'..'z']
                     where removePolymer st c = filter (\ch -> not (ch == c || ch == toUpper c)) st
 
 numberFiveB :: IO Int
-numberFiveB = minimum . map (length . react) . removePolymers . head . lines <$> readFile "/Users/nwest/AoC/5"
+numberFiveB = minimum . map (length . reaction) . removePolymers . head . lines <$> readFile "/Users/nwest/AoC/5"
 
 -----------------------------------------------
 parseCoordinate :: String -> Coordinate
