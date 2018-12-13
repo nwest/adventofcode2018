@@ -100,24 +100,24 @@ numberFive :: IO String
 numberFive = reaction . head . lines <$> readFile "/Users/nwest/AoC/5"
 
 reaction :: String -> String
-reaction inputString = let reactedString = react inputString
-                       in if reactedString == inputString
-                          then reactedString
-                          else react reactedString
+reaction input = let reacted = react input
+                 in if reacted == input
+                      then reacted
+                      else react reacted
 
 react :: String -> String
-react inputString = foldr reactPolymers "" inputString
-                      where reactPolymers char [] = [char]
-                            reactPolymers char string@(firstChar:rest) = if shouldReact char firstChar
-                                                                         then rest
-                                                                         else char:string
-                            shouldReact c1 c2 | isUpper c1, isLower c2 = c1 == toUpper c2
-                                              | isLower c1, isUpper c2 = toUpper c1 == c2 
-                                              | otherwise = False
+react input = foldr reactPolymers "" input
+                where reactPolymers char [] = [char]
+                      reactPolymers char string@(firstChar:rest) = if shouldReact char firstChar
+                                                                     then rest
+                                                                     else char:string
+                      shouldReact c1 c2 | isUpper c1, isLower c2 = c1 == toUpper c2
+                                        | isLower c1, isUpper c2 = toUpper c1 == c2
+                                        | otherwise = False
 
 removePolymers :: String -> [String]
 removePolymers s = map (removePolymer s) ['a'..'z']
-                    where removePolymer st c = filter (\ch -> not (ch == c || ch == toUpper c)) st
+                     where removePolymer st c = filter (\ch -> not (ch == c || ch == toUpper c)) st
 
 numberFiveB :: IO Int
 numberFiveB = minimum . map (length . reaction) . removePolymers . head . lines <$> readFile "/Users/nwest/AoC/5"
