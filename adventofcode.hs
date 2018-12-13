@@ -107,7 +107,7 @@ reaction input = let reacted = react input
 
 react :: String -> String
 react input = foldr reactPolymers "" input
-                where reactPolymers char [] = [char]
+                where reactPolymers char "" = [char]
                       reactPolymers char string@(firstChar:rest) = if shouldReact char firstChar
                                                                      then rest
                                                                      else char:string
