@@ -97,15 +97,15 @@ numberFour = lines <$> readFile "/Users/nwest/AoC/4"
 -----------------------------------------------
 
 shouldReact :: Char -> Char -> Bool
-shouldReact c1 c2 | isUpper c1 && isLower c2 = c1 == toUpper c2
-                  | isLower c1 && isUpper c2 = toUpper c1 == c2 
+shouldReact c1 c2 | isUpper c1, isLower c2 = c1 == toUpper c2
+                  | isLower c1, isUpper c2 = toUpper c1 == c2 
                   | otherwise =  False
 
 react :: String -> String
-react s = let new = reverse $ foldl (\st c ->
-                                      if null st then c:st
-                                      else if shouldReact c (head st) then tail st
-                                      else c:st) "" s
+react s = let new = foldr f "" s
+              f c s@(a:as) | null s = c:s
+                           | shouldReact c a = as
+                           | otherwise = c:s
           in if new == s then s else react new
 
 numberFive :: IO Int
