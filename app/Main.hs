@@ -1,9 +1,17 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 {-# LANGUAGE ViewPatterns #-}
+
+module Main where
+
 import qualified Data.Set as S hiding (Set)
 import Data.Set (Set)
 import Data.List (sort, sortOn, group, nub, minimumBy)
 import Data.Char (ord, toUpper, isUpper, isLower)
+
+main :: IO ()
+main = return ()
+
+-----------------------------------------------
 
 cleanInts :: String -> [Int]
 cleanInts = map read . lines . filter (/= '+')
@@ -107,10 +115,11 @@ reaction input = let reacted = react input
 
 react :: String -> String
 react input = foldr reactPolymers "" input
-                where reactPolymers char "" = [char]
-                      reactPolymers char string@(firstChar:rest) = if shouldReact char firstChar
-                                                                     then rest
-                                                                     else char:string
+  where
+    reactPolymers char "" = [char]
+    reactPolymers char string@(firstChar:rest) = if shouldReact char firstChar
+                                                   then rest
+                                                   else char:string
 
 shouldReact :: Char -> Char -> Bool
 shouldReact c1 c2 | isUpper c1, isLower c2 = c1 == toUpper c2
@@ -125,6 +134,7 @@ numberFiveB :: IO Int
 numberFiveB = minimum . map (length . reaction) . removePolymers . head . lines <$> readFile "/Users/nwest/AoC/5"
 
 -----------------------------------------------
+
 parseCoordinate :: String -> Coordinate
 parseCoordinate s = let [read -> x, read -> y] = splitOn ',' s in Coordinate x y
 
@@ -142,3 +152,5 @@ numberSix :: IO [Coordinate]
 numberSix = let sites = map parseCoordinate . lines <$> readFile "/Users/nwest/AoC/6"
                 --allCoordinates = coordinateMap . boundingPlan <$> sites
             in sites
+
+-----------------------------------------------
