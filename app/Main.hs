@@ -168,7 +168,7 @@ boundedCoords :: Plan -> [(Coordinate, Maybe Coordinate)] -> [(Coordinate, Maybe
 boundedCoords p tuples = helper (filter (isJust . snd) tuples) tuples
   where
     helper xs []                                          = xs
-    helper xs ((coord, maybeCoord):ys) | isOnEdge p coord = helper (filter ((/= maybeCoord) . snd) $ xs) ys
+    helper xs ((coord, maybeCoord):ys) | isOnEdge p coord = helper (filter ((/= maybeCoord) . snd) xs) ys
                                        | otherwise        = helper xs ys
 
 numberSix :: IO ()
@@ -176,16 +176,16 @@ numberSix = do
   sites <- map parseCoordinate . lines <$> readFile "/Users/nwest/AoC/6"
   let p              = boundingPlan sites
       allCoordinates = coordinateMap p
-  putStrLn . show . maximum . map length . group . sort . map snd . boundedCoords p . map (flip closestCoord sites) $ allCoordinates
+  print . maximum . map length . group . sort . map snd . boundedCoords p . map (`closestCoord` sites) $ allCoordinates
 
 distanceToAll :: Coordinate -> [Coordinate] -> Int
-distanceToAll c = sum . map (\x -> manhattan c x)
+distanceToAll c = sum . map (manhattan c)
 
 numberSixB :: IO ()
 numberSixB = do
   sites <- map parseCoordinate . lines <$> readFile "/Users/nwest/AoC/6"
   let p              = boundingPlan sites
       allCoordinates = coordinateMap p
-  putStrLn . show . length . filter (< 10000) . map (flip distanceToAll sites) $ allCoordinates
+  print . length . filter (< 10000) . map (`distanceToAll` sites) $ allCoordinates
 
 -----------------------------------------------
