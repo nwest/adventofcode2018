@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
-{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE TupleSections, ViewPatterns #-}
 
 module Main where
 
@@ -7,6 +7,7 @@ import qualified Data.Set as S hiding (Set)
 import Data.Set (Set)
 import Data.List (sort, sortOn, group, nub, minimumBy)
 import Data.Char (ord, toUpper, isUpper, isLower)
+import Data.Maybe (isJust)
 
 main :: IO ()
 main = return ()
@@ -80,7 +81,7 @@ parsePlan s = let [(read . tail) -> num, _, init -> cs, wh] = words s
     f x = map read . splitOn x
 
 coordinateMap :: Plan -> [Coordinate]
-coordinateMap (Plan _ x y w h) = [ Coordinate xc yc | xc <- [x..(x + w - 1)], yc <- [y..(y + h - 1)] ]
+coordinateMap (Plan _ x y w h) = [ Coordinate xc yc | xc <- [x..(x + w)], yc <- [y..(y + h)] ]
 
 numberThree :: IO Int
 numberThree = length . filter ((/=) 1 . length) . group . sort . concatMap (coordinateMap . parsePlan)  . lines <$> readFile "/Users/nwest/AoC/3"
@@ -148,9 +149,33 @@ boundingPlan cs = let (Coordinate left _)   = minimumBy (\(Coordinate x1 _) (Coo
                       (Coordinate _ top)    = minimumBy (\(Coordinate _ y1) (Coordinate _ y2) -> compare y2 y1) cs
                   in Plan 1 left bottom (right - left) (top - bottom)
 
-numberSix :: IO [Coordinate]
-numberSix = let sites = map parseCoordinate . lines <$> readFile "/Users/nwest/AoC/6"
-                --allCoordinates = coordinateMap . boundingPlan <$> sites
-            in sites
+closestCoord :: Coordinate -> [Coordinate] -> (Coordinate, Maybe Coordinate)
+closestCoord c = (c, ) . g . sortOn snd . map f
+  where
+    f x = (x, manhattan c x)
+    g []                            = Nothing
+    g [(a, _)]                      = Just a
+    g ((a, m):(_, n):_) | m == n    = Nothing
+                        | otherwise = Just a
+
+isOnEdge :: Plan -> Coordinate -> Bool
+isOnEdge (Plan _ x y w h) (Coordinate x' y') = or [ x' == x
+                                                  , y' == y
+                                                  , x' == x + w
+                                                  , y' == y + h ]
+
+boundedCoords :: Plan -> [(Coordinate, Maybe Coordinate)] -> [(Coordinate, Maybe Coordinate)]
+boundedCoords p tuples = helper (filter (isJust . snd) tuples) tuples
+  where
+    helper xs []                                          = xs
+    helper xs ((coord, maybeCoord):ys) | isOnEdge p coord = helper (filter ((/= maybeCoord) . snd) $ xs) ys
+                                       | otherwise        = helper xs ys
+
+numberSix :: IO Int
+numberSix = do
+  sites <- map parseCoordinate . lines <$> readFile "/Users/nwest/AoC/6"
+  let p              = boundingPlan sites
+      allCoordinates = coordinateMap p
+  return . maximum . map length . group . sort . map snd . boundedCoords p . map (flip closestCoord sites) $ allCoordinates
 
 -----------------------------------------------
