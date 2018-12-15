@@ -10,7 +10,7 @@ import Data.Char (ord, toUpper, isUpper, isLower)
 import Data.Maybe (isJust)
 
 main :: IO ()
-main = return ()
+main = numberSix
 
 -----------------------------------------------
 
@@ -171,11 +171,21 @@ boundedCoords p tuples = helper (filter (isJust . snd) tuples) tuples
     helper xs ((coord, maybeCoord):ys) | isOnEdge p coord = helper (filter ((/= maybeCoord) . snd) $ xs) ys
                                        | otherwise        = helper xs ys
 
-numberSix :: IO Int
+numberSix :: IO ()
 numberSix = do
   sites <- map parseCoordinate . lines <$> readFile "/Users/nwest/AoC/6"
   let p              = boundingPlan sites
       allCoordinates = coordinateMap p
-  return . maximum . map length . group . sort . map snd . boundedCoords p . map (flip closestCoord sites) $ allCoordinates
+  putStrLn . show . maximum . map length . group . sort . map snd . boundedCoords p . map (flip closestCoord sites) $ allCoordinates
+
+distanceToAll :: Coordinate -> [Coordinate] -> Int
+distanceToAll c = sum . map (\x -> manhattan c x)
+
+numberSixB :: IO ()
+numberSixB = do
+  sites <- map parseCoordinate . lines <$> readFile "/Users/nwest/AoC/6"
+  let p              = boundingPlan sites
+      allCoordinates = coordinateMap p
+  putStrLn . show . length . filter (< 10000) . map (flip distanceToAll sites) $ allCoordinates
 
 -----------------------------------------------
