@@ -6,8 +6,10 @@ module Main where
 import qualified Data.Set as S hiding (Set)
 import Data.Set (Set)
 import Data.List (sort, sortOn, group, nub, minimumBy)
+import Data.List.Extra (groupOn)
 import Data.Char (ord, toUpper, isUpper, isLower)
 import Data.Maybe (isJust)
+import Data.Time
 
 main :: IO ()
 main = numberSix
@@ -98,10 +100,93 @@ numberThreeB = let plans = map parsePlan . lines <$> readFile "/Users/nwest/AoC/
 
 -----------------------------------------------
 
--- data Event = Wake | Sleep | Start DateTime
+data Event = Wake | Sleep | Work Int deriving (Show, Eq)
+type Shift = [(LocalTime, Event)]
 
-numberFour :: IO [String]
-numberFour = lines <$> readFile "/Users/nwest/AoC/4"
+-- "Guard #2003 begins shift"
+eventFromString :: String -> Event
+eventFromString s | s == "wakes up" = Wake
+                  | s == "falls asleep" = Sleep
+                  | otherwise = Work (read . tail . (!! 1) . words $ s)
+
+-- year-month-day hour:minute
+parseEvent :: String -> (LocalTime, Event)
+parseEvent s = let dateString = init . tail . unwords . take 2 . words $ s
+                   event = eventFromString (unwords . drop 2 . words $ s)
+                   localTime = parseTimeOrError True defaultTimeLocale "%Y-%-m-%-d %R" dateString :: LocalTime
+               in (localTime, event)
+
+shifts :: [(LocalTime, Event)] -> [Shift]
+shifts = map reverse . reverse . foldl f []
+  where
+    f [] a = [[a]]
+    f sh@(b:bs) ev@(_, e) | e == Wake || e == Sleep = (ev:b):bs
+                          | otherwise = [ev] : sh
+
+byTwo :: [a] -> [[a]]
+byTwo = foldr f []
+  where
+    f x [] = [[x]]
+    f x g@(a:as) = if length a == 1 then (x:a):as else [x] : g
+
+sleepTime :: Shift -> (Int, Int)
+sleepTime xs = let Work a = snd . head $ xs
+                   pairs = byTwo . map (todMin . localTimeOfDay . fst) . tail $ xs
+                   time = sum . map (\[t1, t2]-> t2 - t1) $ pairs
+               in (a, time)
+
+sleepiestGuard :: [Shift] -> Int
+sleepiestGuard sh = let times = groupOn fst . sortOn fst . map sleepTime $ sh
+                    in fst . last . sortOn snd . map f $ times
+  where
+    f [] = (0, 0)
+    f a@(x:_) = (fst x, sum . map snd $ a)
+
+isGuardsShift :: Int -> Shift -> Bool
+isGuardsShift num s = let Work a = snd . head $ s
+                      in a == num
+
+shiftsForGuard :: Int -> [Shift] -> [Shift]
+shiftsForGuard num = filter (isGuardsShift num)
+
+sleepyMins :: Shift -> [Int]
+sleepyMins s = let [start, end] = map (todMin . localTimeOfDay . fst) s
+               in [start..(start + (end - start) - 1)]
+
+sleepyShifts :: [Shift] -> [Shift]
+sleepyShifts = byTwo . concatMap (drop 1)
+
+sleepiestMinute :: [Shift] -> Int
+sleepiestMinute = head . last . sortOn length . group . sort . concatMap sleepyMins
+
+sleepiestMinuteFrequency :: [Shift] -> Int
+sleepiestMinuteFrequency = length . last . sortOn length . group . sort . concatMap sleepyMins
+
+numberFour :: IO ()
+numberFour = do
+  allShifts <- shifts . sortOn fst . map parseEvent . lines <$> readFile "/Users/nwest/AoC/4"
+  let sleepiest = sleepiestGuard allShifts
+      sleepyMinute = sleepiestMinute . sleepyShifts . shiftsForGuard sleepiest $ allShifts
+  print (sleepiest * sleepyMinute)
+
+guardForShift :: Shift -> Int
+guardForShift sh = let Work a = snd . head $ sh in a
+
+guards :: [Shift] -> [Int]
+guards = nub . sort . map guardForShift
+
+numberFourB :: IO ()
+numberFourB = do
+  allShifts <- shifts . sortOn fst . map parseEvent . lines <$> readFile "/Users/nwest/AoC/4"
+  let allGuards = guards allShifts
+      sleepShifts = map (sleepyShifts . flip shiftsForGuard allShifts) allGuards
+      together = zip allGuards sleepShifts
+      withoutSleepless = filter (\(_, xs)-> not (null xs)) together
+      allTheThings =  map (\(num, xs) -> (num, sleepiestMinute xs, sleepiestMinuteFrequency xs)) withoutSleepless
+      winningCombo = last . sortOn third $ allTheThings
+  print . f $ winningCombo
+  where
+    f (a, b, _) = a * b
 
 -----------------------------------------------
 

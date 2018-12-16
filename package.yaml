@@ -36,6 +36,8 @@ executables:
     dependencies:
     - adventofcode2018
     - containers
+    - time
+    - extra
 
 tests:
   adventofcode2018-test:
