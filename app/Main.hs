@@ -274,3 +274,32 @@ numberSixB = do
   print . length . filter (< 10000) . map (`distanceToAll` sites) $ allCoordinates
 
 -----------------------------------------------
+
+parseRequirements :: String -> (Char, Char)
+parseRequirements s = let wds = words s
+                          a = head . head . drop 1 $ wds
+                          b = head . head . drop 7 $ wds
+                      in (a, b)
+
+toList :: (a, a) -> [a]
+toList (a, b) = [a,b]
+
+reduction :: [(Char, Char)] -> [Char] -> [Char]
+reduction [] a = a
+reduction _ [] = []
+reduction rules possible = let blocked = map snd rules
+                               playable = filter (`notElem` blocked) possible
+                           in if null playable
+                           then ""
+                           else let nextPlay = head playable
+                                    newRules = filter (\(a, _)-> a /= nextPlay) rules
+                                    newPossible = filter (/= nextPlay) possible
+                                in nextPlay : reduction newRules newPossible
+
+numberSeven :: IO ()
+numberSeven = do
+  requirements <- map parseRequirements . lines <$> readFile "/Users/nwest/AoC/7"
+  let allPossible = nub . sort . concatMap toList $ requirements
+  print . reduction requirements $ allPossible
+
+-----------------------------------------------
